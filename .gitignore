@@ -1,0 +1,88 @@
+# Compiled files
+*.cmx
+*.cmi
+*.cmo
+*.cmxs
+*.o
+*.a
+
+# Ocamllex/Ocamllex-generated files
+*.ml
+*.mli
+
+# OCamlyacc-generated files
+*.mly
+*.mll
+
+# Emacs and Vim temporary files
+*.elc
+*~
+*.swp
+*.swo
+*.swn
+
+# IDE and build system files
+*.d
+*.dSYM
+*.tags
+
+# Other
+Makefile.local
+*.opam
+build
+.emacs.d
+.vscode
+*.log
+*.err
+*.out
+*.diff
+*.patch
+*.bak
+*.orig
+*.rej
+*.tmp
+*.autosave
+
+# OCaml-specific files
+*.annot
+*.cmxa
+*.cmxi
+*.cmt
+*.cmti
+*.cmta
+*.cmxs
+*.cmxi
+*.mli.private
+*.mli.public
+*.ml.depends
+*.cmx.depends
+*.cmi.depends
+*.o.depends
+*.a.depends
+*.so.depends
+*.so
+*.dll
+*.exe
+*.cmx
+*.cmi
+*.cmo
+*.cmxs
+*.a
+*.o
+
+# Documentation and examples
+doc
+examples
+test
+tests
+
+# ocamlbuild-generated files
+_build
+
+# The Scanner
+Scanner.ml
+
+# Temporary files
+_*
+*.tmp
+*.temp
