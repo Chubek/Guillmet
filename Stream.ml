@@ -3,6 +3,7 @@ module Stream = struct
 
   exception Empty_stream
   exception Consume_failed
+  exception Peek_failed
 
   let empty = ref Seq.empty
 
@@ -28,14 +29,25 @@ module Stream = struct
 
   let npeek stm n =
     let stm' = dup stm in
-    let rec aux acc n' =
+    let rec aux acc n' stm'' =
       if n = 0 then List.rev acc
-      else ((next stm') :: acc) (decr n)
+      else ((next stm'') :: acc) (decr n)
+    in
+    aux [] n stm'
 
   let peek_opt stm =
     match !stm () with
     | Seq.Nil -> None
     | Seq.Cons (hd, _) -> Some hd
+
+  let npeek_safe stm n =
+    let stm' = dup stm in
+    let rec aux acc n' stm'' =
+      match peek_opt stm'' with
+      | Some _ -> aux ((next stm'') :: acc) (decr n)
+      | _ -> raise Peek_failed
+    in
+    aux [] n stm'
 
   let skip_next stm =
     let _ = next stm in
