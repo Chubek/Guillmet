@@ -52,55 +52,55 @@ module Stream = struct
 
   let map f stm = Seq.map f !stm
   let iter f stm = Seq.iter f !stm
-  let is_whitespace = function
-    | '\t' | ' ' | '\r' | '\n' -> true
-    | _ -> false
+    let is_whitespace = function
+           | '\t' | ' ' | '\r' | '\n' -> true
+           | _ -> false
 
-  let is_int_head = function
-    | '1' .. '9' -> true
-    | _ -> false
+   let is_int_head = function
+           | '1' .. '9' -> true
+           | _ -> false
 
-  let is_ident_head = function
-    | 'a' .. 'z'
-    | 'A' .. 'Z'
-    | '$' .. '&'
-    | '*' 
-    | '+'
-    | '-' -> true
-    | _ -> false
+   let is_ident_head = function
+           | 'a' .. 'z'
+           | 'A' .. 'Z'
+           | '$' .. '&'
+           | '*' 
+           | '+'
+           | '-' -> true
+           | _ -> false
 
-  let is_int_tail = function
-    | '0' .. '9' -> true
-    | _ -> false
+   let is_int_tail = function
+           | '0' .. '9' -> true
+           | _ -> false
 
-  let is_xint_tail = function
-    | '0' .. '9'
-    | 'a' .. 'f'
-    | 'A' .. 'F' -> true
-    | _ -> false
+   let is_xint_tail = function
+           | '0' .. '9'
+           | 'a' .. 'f'
+           | 'A' .. 'F' -> true
+           | _ -> false
 
-  let is_oint_tail = function
-    | '0' .. '7' -> true
-    | _ -> false
+   let is_oint_tail = function
+           | '0' .. '7' -> true
+           | _ -> false
 
-  let is_bint_tail = function
-    | '0' | '1' -> true
-    | _ -> false
+   let is_bint_tail = function
+           | '0' | '1' -> true
+           | _ -> false
 
-  let is_ident_tail ch =
-    is_ident_head ch || is_int_tail ch
+   let is_ident_tail ch =
+           is_ident_head ch || is_int_tail ch
 
-  let is_real_notation ch =
-    ch = '.' || ch = 'e' || ch = 'E'
+   let is_real_notation ch =
+           ch = '.' || ch = 'e' || ch = 'E'
 
-  let is_sign ch =
-    ch = '+' || ch = '-'
+   let is_sign ch =
+           ch = '+' || ch = '-'
 
-  let is_int
+   let is_int
 
-  let is_real_digit ch =
-    is_int_tail ch
-  let filter p stm = Seq.filter p !stm
+   let is_real_digit ch =
+           is_int_tail ch
+ let filter p stm = Seq.filter p !stm
 
   let of_list lst = ref (List.to_seq lst)
   let of_array arr = ref (Array.to_seq arr)
@@ -124,65 +124,10 @@ module Lexeme = struct
   module type S = sig
     type t
 
-    val prefix : string option
-    val recognize_head : char -> bool
-    val recognize_tail : char -> bool
-    val pipeline : char Stream.t -> (t * Token.t) option
+    val prefix : string
+    val is_head : char -> bool
+            val is_tail : char -> bool
   end
-
-  module LEXEME_Identifier : S = struct
-    type t = string 
-
-    let prefix = None
-
-    let recognize_head c =
-      match c with
-      | 'a' .. 'z'
-      | 'A' .. 'Z'
-      | '!' | '$' 
-      | '~' | '%' 
-      | '+' | '^' 
-      | '-' | '='
-      | '>' | '<'
-      | '?' -> true
-      | _ -> false
-
-    let recognize_tail c =
-      recognize_head c || (c >= '0' && c <= '9')
-
-    let pipeline stm =
-      if recognize_head (Stream.peek stm)
-      then
-        let lst = Stream.take_while recognize_tail stm in
-        Some (implode lst, Token.Identifier)
-      else
-        None 
-  end
-
-  module LEXEME_Integer : S = struct
-    type t = int64
-
-    let prefix = None
-
-    let recognize_head c =
-      match c with
-      | '1' .. '9' -> true
-      | _ -> false
-
-    let recognize_tail c =
-      match c with
-      | '0' .. '9' -> true
-      | _ -> false
-
-    let pipeline stm =
-      if recognize_head (Stream.peek stm)
-      then
-        let lst = Stream.take_while recognize_tail stm in
-        Some (Int64.of_string (implode lst), Token.Integer)
-      else
-        None
-  end
-
 
 end
 
