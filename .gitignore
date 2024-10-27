@@ -6,14 +6,6 @@
 *.o
 *.a
 
-# Ocamllex/Ocamllex-generated files
-*.ml
-*.mli
-
-# OCamlyacc-generated files
-*.mly
-*.mll
-
 # Emacs and Vim temporary files
 *.elc
 *~
