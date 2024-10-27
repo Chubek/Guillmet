@@ -61,8 +61,14 @@ module Stream = struct
   let (<<-) i stm = 
     append stm [i]
 
-  let (>>) stm =
+  let (>>*) stm =
     skip_next stm
+
+  let (>>?) stm =
+    peek stm
+
+  let (>>) stm =
+    next stm
 
   let take_while pred stm =
     let rec aux acc stm' =
@@ -77,7 +83,7 @@ module Stream = struct
     let rec aux acc stm' =
       match peek_opt stm' with
       | Some i when pred i -> List.rev acc
-      | Some i -> aux (i :: acc) (>> stm')
+      | Some i -> aux (i :: acc) (>>* stm')
       | _ -> raise Consume_failed
     in
     aux [] stm
