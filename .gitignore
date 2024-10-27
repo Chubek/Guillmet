@@ -71,9 +71,6 @@ tests
 # ocamlbuild-generated files
 _build
 
-# The Scanner
-Scanner.ml
-
 # Temporary files
 _*
 *.tmp
