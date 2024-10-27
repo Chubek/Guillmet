@@ -6,6 +6,8 @@ module Stream = struct
 
   let empty = ref Seq.empty
 
+  let of_list lst = ref (List.to_seq lst)
+
   let is_spent stm = Seq.is_empty !stm
 
   let dup stm =
