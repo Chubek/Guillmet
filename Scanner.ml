@@ -16,6 +16,37 @@ module Scanner = struct
 
   exception Scan_error
 
+  let is_ldelim = function
+    | '(' | '{' | '[' | Char.chr 171 -> true
+    | _ -> false
+
+  let is_rdelim = function
+    | ')' | '}' | ']' | Char.chr 187 -> true
+    | _ -> false
+
+  let is_id_head = function
+    | 'a' .. 'z'
+    | 'A' .. 'Z'
+    | '~' | '-'
+    | '$' | '%'
+    | '^' | '*'
+    | '&' | '@'
+    | '>' | '<'
+    | '=' | '?' -> true
+    | _ -> false
+
+  let is_int_head = function
+    | '1' .. '9' -> true
+    | _ -> false
+
+  let is_real_head = function
+    | '0' .. '9' -> true
+    | _ -> false
+
+  let is_char_head = function
+    | '\\' -> true
+    | _ -> false
+
   open Stream
 
   let empty = { token_stream = Stream.empty ; char_stream = Stream.empty }
@@ -36,6 +67,5 @@ module Scanner = struct
       scn.token_stream <<- Charlit (take_while is_char_tail scn.char_stream |> implode)
     | _ -> raise Scan_error
 
-  (* Scanner still has some -- a lot to be exact; work to do *)
 
 end
