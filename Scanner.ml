@@ -36,16 +36,31 @@ module Scanner = struct
     | _ -> false
 
   let is_int_head = function
+    | '+' | '-' -> true
     | '1' .. '9' -> true
     | _ -> false
 
   let is_real_head = function
+    | '+' | '-' -> true
     | '0' .. '9' -> true
     | _ -> false
 
   let is_char_head = function
     | '\\' -> true
     | _ -> false
+
+  let is_int_tail = function
+    | '0' .. '9' -> true
+    | _ -> false
+
+  let is_id_tail c = 
+    is_id_head c || is_int_tail c
+
+  let is_real_tail c =
+    is_real_head c || c = '.' || c = 'e' || c = 'E'
+
+  let is_char_tail c =
+    is_id_tail c
 
   open Stream
 
