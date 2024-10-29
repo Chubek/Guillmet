@@ -1,4 +1,33 @@
-module Stream = struct
+module Stream : sig
+  type 'a t
+
+  exception Empty_stream
+  exception Consume_failed
+  exception Peek_failed
+  exception Single_skip_failed
+
+  val of_list : 'a list -> 'a t
+  val empty : unit -> 'a t
+  val is_spent : 'a t -> bool
+  val append : 'a t -> 'a list -> unit
+  val (<<-) : 'a -> 'a t -> unit
+  val dup : 'a t -> 'a t
+
+  val peek : 'a t -> 'a
+  val next : 'a t -> 'a
+  val npeek : 'a t -> int -> 'a list
+  val peek_opt : 'a t -> 'a option
+  val npeek_safe : 'a t -> int -> 'a list option
+  val skip_next : 'a t -> 'a t
+
+  val remaining : 'a t -> int
+
+  val take_while : ('a -> bool) -> 'a t -> 'a list
+  val take_until : ('a -> bool) -> 'a t -> 'a list
+  val drop_while : ('a -> bool) -> 'a t -> unit
+  val drop_until : ('a -> bool) -> 'a t -> unit
+  val skip_single : ('a -> bool) -> 'a t -> unit
+end = struct
   type 'a t = 'a Seq.t ref
 
   exception Empty_stream
@@ -6,9 +35,9 @@ module Stream = struct
   exception Peek_failed
   exception Single_skip_failed
 
-  let empty = ref Seq.empty
-
   let of_list lst = ref (List.to_seq lst)
+
+  let empty () = of_list []
 
   let is_spent stm = Seq.is_empty !stm
 
@@ -19,9 +48,7 @@ module Stream = struct
     append stm [i]
 
   let dup stm =
-    let new_stream = empty in
-    Seq.iter (fun i -> new_stream <<- i) !stm;
-    new_stream
+    ref (List.to_seq (List.of_seq !stm))
 
   let peek stm =
     match !stm () with
@@ -88,9 +115,9 @@ module Stream = struct
     let _ = take_until pred stm in
     ()
 
-  let drop_single pred stm =
+  let skip_single pred stm =
     match peek_opt stm with
-    | Some c when pred c -> next stm
+    | Some c when pred c -> next stm; ()
     | Some c -> raise Single_skip_failed
     | None -> raise Empty_stream
 end
