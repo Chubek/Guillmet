@@ -26,7 +26,9 @@ module Scanner = struct
   exception Premature_eof
   exception Mature_eof
 
-  let empty = { token_stream = Stream.empty ; char_stream = Stream.empty; prec_counter = 0 }
+  let empty : t = { token_stream = Stream.empty ; char_stream = Stream.empty ; prec_counter = 0 }
+
+  let of_string str : t = { token_stream = Stream.empty ; char_stream = Stream.of_list (explode str) ; prec_counter = 0 }
 
   let (++) scn = { scn with prec_counter = scn.prec_counter + 1 }
 
@@ -42,11 +44,13 @@ module Scanner = struct
     | _ -> false
 
   let is_ldelim = function
-    | '(' | '{' | '[' | Char.chr 171 -> true
+    | '(' | '{' | '[' -> true
+    | c when c = Char.chr 171 -> true
     | _ -> false
 
   let is_rdelim = function
-    | ')' | '}' | ']' | Char.chr 187 -> true
+    | ')' | '}' | ']' -> true
+    | c when c = Char.chr 187 -> true
     | _ -> false
 
   let is_id_head = function
@@ -112,15 +116,19 @@ module Scanner = struct
   let is_ext_tail c = 
     is_real_tai c || c = '#'
 
+  let is_end_token = function
+    | Rdelim (_, _) -> true
+    | _ -> false
+
   open Stream
 
-  let rec scan ++scn =
+  let rec scan scn =
     match peek_opt scn.char_stream with
     | Some c when is_whitespace c -> Stream.drop_while is_whitespace scn.char_stream; scan scn
     | Some c when is_ldelim c ->
-      scn.token_stream <<- Ldelim (>> scn.char_stream); scan !!scn
+      scn.token_stream <<- Ldelim (next scn.char_stream); scan !!scn
     | Some c when is_rdelim c ->
-      scn.token_stream <<- Rdelim (>> scn.char_stream); scan >>scn
+      scn.token_stream <<- Rdelim (next scn.char_stream); scan >>scn
     | Some c when is_id_head c ->
       scn.token_stream <<- Ident (take_while is_id_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
     | Some c when is_int_head c ->
@@ -142,11 +150,11 @@ module Scanner = struct
         scn.token_stream <<- Binlit (take_while is_bin_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
       | Some c when c = 'E' || c = 'e' ->
         scn.token_stream <<- ExtLit (take_while is_ext_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
-      | Some _ when _ -> raise Wrong_symbol
+      | Some _ -> raise Wrong_symbol
       | None -> raise Premature_eof
-    | Some _ when _ -> raise Wrong_symbol
+    | Some _ -> raise Wrong_symbol
     | None -> 
-        if Stream.last_matched scn.token_stream |> is_rdelim then raise Mature_eof
+        if Stream.peek_last scn.token_stream |> is_end_token then raise Mature_eof
         else raise Premature_eof
 
 

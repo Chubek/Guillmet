@@ -1,0 +1,4 @@
+(executable
+ (public_name guillmet)
+ (name main)
+ (libraries guillmet))
