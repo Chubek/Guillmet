@@ -7,7 +7,6 @@ module Stream : sig
   exception Single_skip_failed
 
   val of_list : 'a list -> 'a t
-  val empty : unit -> 'a t
   val is_spent : 'a t -> bool
   val append : 'a t -> 'a list -> unit
   val (<<-) : 'a -> 'a t -> unit
@@ -28,7 +27,7 @@ module Stream : sig
   val take_until : ('a -> bool) -> 'a t -> 'a list
   val drop_while : ('a -> bool) -> 'a t -> unit
   val drop_until : ('a -> bool) -> 'a t -> unit
-  val skip_single : ('a -> bool) -> 'a t -> unit
+  val skip_single : ('a -> bool) -> 'a t -> 'a
 end = struct
   type 'a t = 'a Seq.t ref
 
@@ -38,8 +37,6 @@ end = struct
   exception Single_skip_failed
 
   let of_list lst = ref (List.to_seq lst)
-
-  let empty () = of_list []
 
   let is_spent stm = Seq.is_empty !stm
 
@@ -126,7 +123,7 @@ end = struct
 
   let skip_single pred stm =
     match peek_opt stm with
-    | Some c when pred c -> next stm; ()
-    | Some c -> raise Single_skip_failed
+    | Some c when pred c -> next stm
+    | Some _ -> raise Single_skip_failed
     | None -> raise Empty_stream
 end

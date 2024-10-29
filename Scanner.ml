@@ -1,3 +1,5 @@
+#use "stream.ml"
+
 module Scanner = struct
   type t =
     { token_stream : token Stream.t
@@ -26,18 +28,19 @@ module Scanner = struct
   exception Premature_eof
   exception Mature_eof
 
-  let empty : t = { token_stream = Stream.empty ; char_stream = Stream.empty ; prec_counter = 0 }
+  let explode str = List.of_seq (String.to_seq str)
+  let implode lst = String.of_seq (List.to_seq lst)
 
-  let of_string str : t = { token_stream = Stream.empty ; char_stream = Stream.of_list (explode str) ; prec_counter = 0 }
+
+  let empty : t = { token_stream = Stream.of_list [] ; char_stream = Stream.of_list [] ; prec_counter = 0 }
+
+  let of_string str : t = { token_stream = Stream.of_list [] ; char_stream = Stream.of_list (explode str) ; prec_counter = 0 }
 
   let (++) scn = { scn with prec_counter = scn.prec_counter + 1 }
 
   let (>>) scn = { scn with prec_counter = scn.prec_counter * 10 }
 
   let (!!) scn = { scn with prec_counter = 0 }
-
-  let explode str = List.of_seq (String.to_seq str)
-  let implode lst = String.of_seq (List.to_seq lst)
 
   let is_whitespace = function
     | '\t' | '\r' | '\n' | ' ' -> true
@@ -114,7 +117,7 @@ module Scanner = struct
     | _ -> false
 
   let is_ext_tail c = 
-    is_real_tai c || c = '#'
+    is_real_tail c || c = '#'
 
   let is_end_token = function
     | Rdelim (_, _) -> true
