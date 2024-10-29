@@ -19,8 +19,12 @@ module Scanner = struct
     | Reallit of string * int
     | Ldelim of char * int
     | Rdelim of char * int
+    | Meta of char * int
 
   exception Scan_error
+  exception Wrong_symbol
+  exception Premature_eof
+  exception Mature_eof
 
   let empty = { token_stream = Stream.empty ; char_stream = Stream.empty; prec_counter = 0 }
 
@@ -32,6 +36,10 @@ module Scanner = struct
 
   let explode str = List.of_seq (String.to_seq str)
   let implode lst = String.of_seq (List.to_seq lst)
+
+  let is_whitespace = function
+    | '\t' | '\r' | '\n' | ' ' -> true
+    | _ -> false
 
   let is_ldelim = function
     | '(' | '{' | '[' | Char.chr 171 -> true
@@ -108,6 +116,7 @@ module Scanner = struct
 
   let rec scan ++scn =
     match peek_opt scn.char_stream with
+    | Some c when is_whitespace c -> Stream.drop_while is_whitespace scn.char_stream; scan scn
     | Some c when is_ldelim c ->
       scn.token_stream <<- Ldelim (>> scn.char_stream); scan !!scn
     | Some c when is_rdelim c ->
@@ -131,8 +140,14 @@ module Scanner = struct
         scn.token_stream <<- Octlit (take_while is_oct_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
       | Some c when c = 'B' || c = 'b' ->
         scn.token_stream <<- Binlit (take_while is_bin_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
-
-      | _ -> raise Scan_error
+      | Some c when c = 'E' || c = 'e' ->
+        scn.token_stream <<- ExtLit (take_while is_ext_tail scn.char_stream |> implode, scn.prec_counter); scan ++scn
+      | Some _ when _ -> raise Wrong_symbol
+      | None -> raise Premature_eof
+    | Some _ when _ -> raise Wrong_symbol
+    | None -> 
+        if Stream.last_matched scn.token_stream |> is_rdelim then raise Mature_eof
+        else raise Premature_eof
 
 
 end
