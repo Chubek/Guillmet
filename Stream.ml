@@ -1,5 +1,5 @@
 module Stream = struct
-  type t = 'a Seq.t ref
+  type 'a t = 'a Seq.t ref
 
   exception Empty_stream
   exception Consume_failed
@@ -12,9 +12,15 @@ module Stream = struct
 
   let is_spent stm = Seq.is_empty !stm
 
+  let append stm lst = 
+    stm := Seq.append !stm (List.to_seq lst)
+
+  let (<<-) i stm = 
+    append stm [i]
+
   let dup stm =
     let new_stream = empty in
-    Seq.iter (fun i -> new_stream <- i) !stm;
+    Seq.iter (fun i -> new_stream <<- i) !stm;
     new_stream
 
   let peek stm =
@@ -32,7 +38,7 @@ module Stream = struct
     let stm' = dup stm in
     let rec aux acc n' stm'' =
       if n = 0 then List.rev acc
-      else ((next stm'') :: acc) (decr n)
+      else aux ((next stm'') :: acc) (n' - 1) stm''
     in
     aux [] n stm'
 
@@ -45,7 +51,7 @@ module Stream = struct
     let stm' = dup stm in
     let rec aux acc n' stm'' =
       match peek_opt stm'' with
-      | Some _ -> aux ((next stm'') :: acc) (decr n)
+      | Some _ -> aux ((next stm'') :: acc) (n' - 1) stm''
       | _ -> raise Peek_failed
     in
     aux [] n stm'
@@ -56,25 +62,10 @@ module Stream = struct
 
   let remaining stm = Seq.length !stm
 
-  let append stm lst = 
-    stm := Seq.append !stm (List.to_seq lst)
-
-  let (<<-) i stm = 
-    append stm [i]
-
-  let (>>*) stm =
-    skip_next stm
-
-  let (>>?) stm =
-    peek stm
-
-  let (>>) stm =
-    next stm
-
   let take_while pred stm =
     let rec aux acc stm' =
       match peek_opt stm' with
-      | Some i when pred i -> aux (i :: acc) (>> stm')
+      | Some i when pred i -> aux (i :: acc) (skip_next stm')
       | Some _ -> List.rev acc
       | _ -> raise Consume_failed
     in
@@ -84,7 +75,7 @@ module Stream = struct
     let rec aux acc stm' =
       match peek_opt stm' with
       | Some i when pred i -> List.rev acc
-      | Some i -> aux (i :: acc) (>>* stm')
+      | Some i -> aux (i :: acc) (skip_next stm')
       | _ -> raise Consume_failed
     in
     aux [] stm
@@ -99,7 +90,7 @@ module Stream = struct
 
   let drop_single pred stm =
     match peek_opt stm with
-    | Some c when pred c -> >>* stm
-    | Some c when _ -> raise Single_skip_failed
+    | Some c when pred c -> next stm
+    | Some c -> raise Single_skip_failed
     | None -> raise Empty_stream
 end
