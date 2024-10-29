@@ -2,12 +2,27 @@
 
 require 'optparse'
 
-$DIR_PREFIX = '#'
-$ARG_PREFIX = '$'
+$DIR_PREFIX = '@'
+$ARG_PREFIX = '#'
+$EVAR_PREFIX = '$'
 $TERMINTOR = ';'
 $STR_DELIM = '"'
-$INCDIR_NAME = 'include'
-$DEFDIR_NAME = 'define'
+$SEPARATOR = ','
+$LDELIM = '('
+$RDELIM = ')'
+
+$INCDIR_NAME = 'Incfile'
+$DEFDIR_NAME = 'Defmacro'
+$EXPDIR_NAME = 'Export'
+$EVLDIR_NAME = 'Eval'
+$EXCDIR_NAME = 'Exec'
+$SYSDIR_NAME = 'System'
+$TRNDIR_NAME = 'Translit'
+$REGDIR_NAME = 'Regexpcc'
+$IFFDIR_NAME = 'If'
+$ELSDIR_NAME = 'Else'
+$ELFDIR_NAME = 'Elif'
+$EIFDIR_NAME = 'Endif'
 
 class LexicalScanner
   attr_accessor :input_file, :include_dirs, :define_dirs, :bypass_lines, :slave_memory
@@ -28,6 +43,59 @@ class LexicalScanner
     def initialize(name, body)
       @name = name
       @body = body
+    end
+  end
+
+  class ExportDirective
+    attr_accessor :name, :val
+
+    def initialize(name, val)
+      @name = name
+      @val = val
+    end
+  end
+
+  class EvalDirective
+    attr_accessor :value, :dest
+
+    def initialize(value, dest)
+      @value = value
+      @dest = dest
+    end
+  end
+
+  class ExecDirective
+    attr_accessor :value, :dest
+
+    def initialize(value, dest)
+      @value = value
+      @dest = dest
+    end
+  end
+
+  class SystemDirective
+    attr_accessor :cmd
+
+    def initialize(cmd)
+      @cmd = cmd
+    end
+  end
+
+  class TranslitDirective
+    attr_accessor :from_set, :to_set, :value
+
+    def initialize(from_set, to_set, value)
+      @from_set = from_set
+      @to_set = to_set
+      @value = value
+    end
+  end
+
+  class RegexpCCDirective
+    attr_accessor :patt
+
+    def initialize(patt)
+      @patt = patt
     end
   end
 
