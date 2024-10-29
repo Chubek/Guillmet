@@ -12,9 +12,11 @@ module Stream : sig
   val append : 'a t -> 'a list -> unit
   val (<<-) : 'a -> 'a t -> unit
   val dup : 'a t -> 'a t
+  val rev : 'a t -> 'a t
 
   val peek : 'a t -> 'a
   val next : 'a t -> 'a
+  val peek_last : 'a t -> 'a
   val npeek : 'a t -> int -> 'a list
   val peek_opt : 'a t -> 'a option
   val npeek_safe : 'a t -> int -> 'a list option
@@ -50,6 +52,9 @@ end = struct
   let dup stm =
     ref (List.to_seq (List.of_seq !stm))
 
+  let rev stm =
+    ref (List.to_seq (List.rev (List.of_seq !stm)))
+
   let peek stm =
     match !stm () with
     | Seq.Nil -> raise Empty_stream
@@ -68,6 +73,10 @@ end = struct
       else aux ((next stm'') :: acc) (n' - 1) stm''
     in
     aux [] n stm'
+
+  let peek_last stm =
+    let inv = rev stm in
+    peek inv
 
   let peek_opt stm =
     match !stm () with
