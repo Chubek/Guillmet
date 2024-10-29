@@ -4,6 +4,7 @@ module Stream = struct
   exception Empty_stream
   exception Consume_failed
   exception Peek_failed
+  exception Single_skip_failed
 
   let empty = ref Seq.empty
 
@@ -95,4 +96,10 @@ module Stream = struct
   let drop_until pred stm =
     let _ = take_until pred stm in
     ()
+
+  let drop_single pred stm =
+    match peek_opt stm with
+    | Some c when pred c -> >>* stm
+    | Some c when _ -> raise Single_skip_failed
+    | None -> raise Empty_stream
 end
