@@ -164,7 +164,6 @@ module Scanner = struct
   let explode str = List.of_seq (String.to_seq str)
   let implode lst = String.of_seq (List.to_seq lst)
 
-
   let empty : t = { token_stream = Stream.of_list [] ; char_stream = Stream.of_list [] ; prec_counter = 0 }
 
   let of_string str : t = { token_stream = Stream.of_list [] ; char_stream = Stream.of_list (explode str) ; prec_counter = 0 }
@@ -276,22 +275,23 @@ module Scanner = struct
     | None -> 
       if Stream.peek_last scn.token_stream |> is_end_token then raise Mature_eof
       else raise Premature_eof
-    | Some c when c = '#' ->
-      Stream.skip scn.char_stream;
-      match peek_opt scn.char_stream with
-      | Some c when c = 't' || c = 'f' ->
-        scn.token_stream <<- Boollit (take_while is_bool_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
-      | Some c when c = 'x' || c = 'X' ->
-        scn.token_stream <<- Hexlit (take_while is_hex_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
-      | Some c when c = 'O' || c = 'o' ->
-        scn.token_stream <<- Octlit (take_while is_oct_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
-      | Some c when c = 'B' || c = 'b' ->
-        scn.token_stream <<- Binlit (take_while is_bin_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
-      | Some c when c = 'E' || c = 'e' ->
-        scn.token_stream <<- Extlit (take_while is_ext_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
-      | Some _ -> raise Wrong_symbol
-      | None -> raise Premature_eof
-      | _ -> raise Scan_error
-
-
+    | Some c when c = '#' -> 
+      let match_pound scn =
+        Stream.skip scn.char_stream;
+        match peek_opt scn.char_stream with
+        | Some c when c = 't' || c = 'f' ->
+          scn.token_stream <<- Boollit (take_while is_bool_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
+        | Some c when c = 'x' || c = 'X' ->
+          scn.token_stream <<- Hexlit (take_while is_hex_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
+        | Some c when c = 'O' || c = 'o' ->
+          scn.token_stream <<- Octlit (take_while is_oct_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
+        | Some c when c = 'B' || c = 'b' ->
+          scn.token_stream <<- Binlit (take_while is_bin_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
+        | Some c when c = 'E' || c = 'e' ->
+          scn.token_stream <<- Extlit (take_while is_ext_tail scn.char_stream |> implode, scn.prec_counter); scan ((++)scn)
+        | Some _ -> raise Wrong_symbol
+        | None -> raise Premature_eof
+      in
+      match_pound scn
+    | Some _ -> raise Wrong_symbol
 end
